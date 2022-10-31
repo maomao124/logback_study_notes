@@ -376,3 +376,312 @@ public class LogbackTest
 
 ### 案例二
 
+
+
+#### 第一步：创建springboot工程springboot_logback_demo
+
+
+
+![image-20221031190900228](img/logback学习笔记/image-20221031190900228.png)
+
+
+
+
+
+
+
+#### 第二步：修改pom文件
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>mao</groupId>
+    <artifactId>springboot_logback_demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>springboot_logback_demo</name>
+    <description>springboot_logback_demo</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--logback-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+
+```
+
+
+
+
+
+
+
+#### 第三步：在resources下编写logback配置文件logback-base.xml
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+    <contextName>logback</contextName>
+    <!--
+      name的值是变量的名称，value的值时变量定义的值
+      定义变量后，可以使“${}”来使用变量
+   -->
+    <property name="log.path" value="./logs"/>
+
+    <!-- 彩色日志 -->
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule
+            conversionWord="clr"
+            converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule
+            conversionWord="wex"
+            converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!--输出到控制台-->
+    <appender name="LOG_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
+            <!-- 设置字符集 -->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--输出到文件-->
+    <appender name="LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 正在记录的日志文件的路径及文件名 -->
+        <file>${log.path}/logback.log</file>
+        <!--日志文件输出格式-->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天日志归档路径以及格式 -->
+            <fileNamePattern>${log.path}/info/log-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <maxHistory>365</maxHistory>
+        </rollingPolicy>
+    </appender>
+</included>
+```
+
+
+
+
+
+#### 第四步：在resources下编写logback配置文件logback-spring.xml
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!--引入其他配置文件-->
+    <include resource="logback-base.xml"/>
+    <!--
+    <logger>用来设置某一个包或者具体的某一个类的日志打印级别、
+    以及指定<appender>。<logger>仅有一个name属性，
+    一个可选的level和一个可选的addtivity属性。
+    name:用来指定受此logger约束的某一个包或者具体的某一个类。
+    level:用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，
+          如果未设置此属性，那么当前logger将会继承上级的级别。
+    addtivity:是否向上级logger传递打印信息。默认是true。
+     -->
+
+    <!--开发环境-->
+<!--    <springProfile name="dev">-->
+<!--        <logger name="包名" additivity="false" level="debug">-->
+<!--            <appender-ref ref="LOG_CONSOLE"/>-->
+<!--        </logger>-->
+<!--    </springProfile>-->
+<!--    &lt;!&ndash;生产环境&ndash;&gt;-->
+<!--    <springProfile name="pro">-->
+<!--        <logger name="包名" additivity="false" level="info">-->
+<!--            <appender-ref ref="LOG_FILE"/>-->
+<!--        </logger>-->
+<!--    </springProfile>-->
+
+    <!--
+    root节点是必选节点，用来指定最基础的日志输出级别，只有一个level属性
+    level:设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF 默认是DEBUG
+    可以包含零个或多个元素，标识这个appender将会添加到这个logger。
+    -->
+    <root level="info">
+        <appender-ref ref="LOG_CONSOLE"/>
+        <appender-ref ref="LOG_FILE"/>
+    </root>
+</configuration>
+```
+
+
+
+
+
+#### 第五步：编写application.yml文件
+
+
+
+```yaml
+logging:
+  config: classpath:logback-spring.xml
+
+spring:
+  profiles:
+    active: dev
+```
+
+
+
+
+
+
+
+#### 第六步：创建并编写UserController
+
+
+
+```java
+package mao.springboot_logback_demo.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Project name(项目名称)：springboot_logback_demo
+ * Package(包名): mao.springboot_logback_demo.controller
+ * Class(类名): UserController
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 19:24
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+@RestController
+@RequestMapping("/user")
+public class UserController
+{
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    @GetMapping("/get")
+    public String get()
+    {
+        log.trace("trace...");
+        log.debug("debug...");
+        log.info("info...");
+        log.warn("warn...");
+        log.error("error...");
+        return "OK";
+    }
+}
+```
+
+
+
+#### 第七步：启动并访问
+
+
+
+http://localhost:8080/user/get
+
+
+
+![image-20221031193632439](img/logback学习笔记/image-20221031193632439.png)
+
+
+
+
+
+可以看到控制台已经开始输出日志信息。
+
+修改application.yml文件中的开发模式为pro，重启项目这日志输出到了文件中。
+
+
+
+
+
+
+
+
+
+
+
+## Spring Event
+
+### 介绍
+
+Spring Event是Spring的事件通知机制，可以将相互耦合的代码解耦，从而方便功能的修改与添加。Spring Event是监听者模式的一个具体实现。
+
+监听者模式包含了监听者Listener、事件Event、事件发布者EventPublish，过程就是EventPublish发布一个事件，被监听者捕获到，然后执行事件相应的方法。
+
+Spring Event的相关API在spring-context包中。
+
+
+
+
+
+
+
+### Spring Event入门案例
+
+
+
+第一步：
