@@ -684,4 +684,556 @@ Spring Event的相关API在spring-context包中。
 
 
 
-第一步：
+第一步：创建工程spring_event_demo
+
+
+
+![image-20221031194439225](img/logback学习笔记/image-20221031194439225.png)
+
+
+
+
+
+pom文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>mao</groupId>
+    <artifactId>spring_event_demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>spring_event_demo</name>
+    <description>spring_event_demo</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+
+
+
+
+
+
+
+第二步：创建OptLogDTO类，用于封装操作日志信息
+
+
+
+```java
+package mao.spring_event_demo.entity;
+
+/**
+ * Project name(项目名称)：spring_event_demo
+ * Package(包名): mao.spring_event_demo.entity
+ * Class(类名): OptLogDTO
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 20:01
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+
+public class OptLogDTO
+{
+    /**
+     * 操作IP
+     */
+    private String requestIp;
+
+    /**
+     * 日志类型 LogType{OPT:操作类型;EX:异常类型}
+     */
+    private String type;
+
+    /**
+     * 操作人
+     */
+    private String userName;
+
+    /**
+     * 操作描述
+     */
+    private String description;
+
+    /**
+     * Instantiates a new Opt log dto.
+     */
+    public OptLogDTO()
+    {
+
+    }
+
+    /**
+     * Instantiates a new Opt log dto.
+     *
+     * @param requestIp   the request ip
+     * @param type        the type
+     * @param userName    the user name
+     * @param description the description
+     */
+    public OptLogDTO(String requestIp, String type, String userName, String description)
+    {
+        this.requestIp = requestIp;
+        this.type = type;
+        this.userName = userName;
+        this.description = description;
+    }
+
+    /**
+     * Gets request ip.
+     *
+     * @return the request ip
+     */
+    public String getRequestIp()
+    {
+        return requestIp;
+    }
+
+    /**
+     * Sets request ip.
+     *
+     * @param requestIp the request ip
+     */
+    public void setRequestIp(String requestIp)
+    {
+        this.requestIp = requestIp;
+    }
+
+    /**
+     * Gets type.
+     *
+     * @return the type
+     */
+    public String getType()
+    {
+        return type;
+    }
+
+    /**
+     * Sets type.
+     *
+     * @param type the type
+     */
+    public void setType(String type)
+    {
+        this.type = type;
+    }
+
+    /**
+     * Gets user name.
+     *
+     * @return the user name
+     */
+    public String getUserName()
+    {
+        return userName;
+    }
+
+    /**
+     * Sets user name.
+     *
+     * @param userName the user name
+     */
+    public void setUserName(String userName)
+    {
+        this.userName = userName;
+    }
+
+    /**
+     * Gets description.
+     *
+     * @return the description
+     */
+    public String getDescription()
+    {
+        return description;
+    }
+
+    /**
+     * Sets description.
+     *
+     * @param description the description
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+
+        OptLogDTO optLogDTO = (OptLogDTO) o;
+
+        if (getRequestIp() != null ? !getRequestIp().equals(optLogDTO.getRequestIp()) : optLogDTO.getRequestIp() != null)
+        {
+            return false;
+        }
+        if (getType() != null ? !getType().equals(optLogDTO.getType()) : optLogDTO.getType() != null)
+        {
+            return false;
+        }
+        if (getUserName() != null ? !getUserName().equals(optLogDTO.getUserName()) : optLogDTO.getUserName() != null)
+        {
+            return false;
+        }
+        return getDescription() != null ? getDescription().equals(optLogDTO.getDescription()) : optLogDTO.getDescription() == null;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = getRequestIp() != null ? getRequestIp().hashCode() : 0;
+        result = 31 * result + (getType() != null ? getType().hashCode() : 0);
+        result = 31 * result + (getUserName() != null ? getUserName().hashCode() : 0);
+        result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuffer stringBuffer = new StringBuffer("OptLogDTO{");
+        stringBuffer.append("requestIp='").append(requestIp).append('\'');
+        stringBuffer.append(", type='").append(type).append('\'');
+        stringBuffer.append(", userName='").append(userName).append('\'');
+        stringBuffer.append(", description='").append(description).append('\'');
+        stringBuffer.append('}');
+        return stringBuffer.toString();
+    }
+}
+
+```
+
+
+
+
+
+
+
+第三步：创建事件类SysLogEvent
+
+
+
+```java
+package mao.spring_event_demo.event;
+
+import mao.spring_event_demo.entity.OptLogDTO;
+import org.springframework.context.ApplicationEvent;
+
+/**
+ * Project name(项目名称)：spring_event_demo
+ * Package(包名): mao.spring_event_demo.event
+ * Class(类名): SysLogEvent
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 20:03
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+public class SysLogEvent extends ApplicationEvent
+{
+    public SysLogEvent(OptLogDTO optLogDTO)
+    {
+        super(optLogDTO);
+    }
+}
+```
+
+
+
+
+
+第四步：创建监听器类SysLogListener
+
+
+
+```java
+package mao.spring_event_demo.listener;
+
+import mao.spring_event_demo.entity.OptLogDTO;
+import mao.spring_event_demo.event.SysLogEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+
+/**
+ * Project name(项目名称)：spring_event_demo
+ * Package(包名): mao.spring_event_demo.listener
+ * Class(类名): SysLogListener
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 20:05
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+@Component
+public class SysLogListener
+{
+    private static final Logger log = LoggerFactory.getLogger(SysLogListener.class);
+
+    @Async
+    @EventListener(SysLogEvent.class)
+    public void saveSysLog(SysLogEvent event)
+    {
+        OptLogDTO sysLog = (OptLogDTO) event.getSource();
+        long id = Thread.currentThread().getId();
+        log.info("监听到日志操作事件：" + sysLog + " 线程id：" + id);
+        //将日志信息保存到数据库或者其它地方
+
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        log.info("初始化SysLogListener");
+    }
+}
+
+```
+
+
+
+
+
+
+
+第五步：创建Controller，用于发布事件
+
+
+
+```java
+package mao.spring_event_demo.controller;
+
+import mao.spring_event_demo.entity.OptLogDTO;
+import mao.spring_event_demo.event.SysLogEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Project name(项目名称)：spring_event_demo
+ * Package(包名): mao.spring_event_demo.controller
+ * Class(类名): UserController
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 20:09
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+@RestController
+@RequestMapping("/user")
+public class UserController
+{
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    @GetMapping("/getUser")
+    public String getUser()
+    {
+        //构造操作日志信息
+        OptLogDTO logInfo = new OptLogDTO();
+        logInfo.setRequestIp("127.0.0.1");
+        logInfo.setUserName("admin");
+        logInfo.setType("OPT");
+        logInfo.setDescription("查询用户信息");
+
+        //构造事件对象
+        ApplicationEvent event = new SysLogEvent(logInfo);
+
+        //发布事件
+        applicationContext.publishEvent(event);
+
+        long id = Thread.currentThread().getId();
+        log.info("发布事件,线程id：" + id);
+        return "OK";
+    }
+}
+
+```
+
+
+
+
+
+第六步：在启动类上添加EnableAsync注解
+
+
+
+```java
+package mao.spring_event_demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+@SpringBootApplication
+@EnableAsync
+public class SpringEventDemoApplication
+{
+
+    public static void main(String[] args)
+    {
+        SpringApplication.run(SpringEventDemoApplication.class, args);
+    }
+
+}
+```
+
+
+
+
+
+第七步：启动程序
+
+
+
+```sh
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.7.1)
+
+2022-10-31 20:28:16.647  INFO 11836 --- [           main] m.s.SpringEventDemoApplication           : Starting SpringEventDemoApplication using Java 16.0.2 on mao with PID 11836 (H:\程序\大四上期\spring_event_demo\target\classes started by mao in H:\程序\大四上期\spring_event_demo)
+2022-10-31 20:28:16.649  INFO 11836 --- [           main] m.s.SpringEventDemoApplication           : No active profile set, falling back to 1 default profile: "default"
+2022-10-31 20:28:17.281  INFO 11836 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-10-31 20:28:17.287  INFO 11836 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-10-31 20:28:17.287  INFO 11836 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2022-10-31 20:28:17.357  INFO 11836 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-10-31 20:28:17.358  INFO 11836 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 672 ms
+2022-10-31 20:28:17.393  INFO 11836 --- [           main] m.s.listener.SysLogListener              : 初始化SysLogListener
+2022-10-31 20:28:17.632  INFO 11836 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-10-31 20:28:17.641  INFO 11836 --- [           main] m.s.SpringEventDemoApplication           : Started SpringEventDemoApplication in 1.259 seconds (JVM running for 1.697)
+```
+
+
+
+
+
+
+
+
+
+第八步：访问
+
+
+
+http://localhost:8080/user/getUser
+
+
+
+```sh
+2022-10-31 20:28:17.393  INFO 11836 --- [           main] m.s.listener.SysLogListener              : 初始化SysLogListener
+2022-10-31 20:28:17.632  INFO 11836 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-10-31 20:28:17.641  INFO 11836 --- [           main] m.s.SpringEventDemoApplication           : Started SpringEventDemoApplication in 1.259 seconds (JVM running for 1.697)
+2022-10-31 20:28:30.387  INFO 11836 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2022-10-31 20:28:30.387  INFO 11836 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2022-10-31 20:28:30.388  INFO 11836 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2022-10-31 20:28:30.404  INFO 11836 --- [nio-8080-exec-1] m.s.controller.UserController            : 发布事件,线程id：35
+2022-10-31 20:28:30.412  INFO 11836 --- [         task-1] m.s.listener.SysLogListener              : 监听到日志操作事件：OptLogDTO{requestIp='127.0.0.1', type='OPT', userName='admin', description='查询用户信息'} 线程id：53
+2022-10-31 20:28:30.572  INFO 11836 --- [nio-8080-exec-2] m.s.controller.UserController            : 发布事件,线程id：36
+2022-10-31 20:28:30.572  INFO 11836 --- [         task-2] m.s.listener.SysLogListener              : 监听到日志操作事件：OptLogDTO{requestIp='127.0.0.1', type='OPT', userName='admin', description='查询用户信息'} 线程id：54
+2022-10-31 20:28:30.789  INFO 11836 --- [nio-8080-exec-3] m.s.controller.UserController            : 发布事件,线程id：37
+2022-10-31 20:28:30.789  INFO 11836 --- [         task-3] m.s.listener.SysLogListener              : 监听到日志操作事件：OptLogDTO{requestIp='127.0.0.1', type='OPT', userName='admin', description='查询用户信息'} 线程id：55
+2022-10-31 20:28:31.936  INFO 11836 --- [nio-8080-exec-4] m.s.controller.UserController            : 发布事件,线程id：38
+2022-10-31 20:28:31.936  INFO 11836 --- [         task-4] m.s.listener.SysLogListener              : 监听到日志操作事件：OptLogDTO{requestIp='127.0.0.1', type='OPT', userName='admin', description='查询用户信息'} 线程id：56
+2022-10-31 20:28:32.369  INFO 11836 --- [nio-8080-exec-5] m.s.controller.UserController            : 发布事件,线程id：39
+2022-10-31 20:28:32.370  INFO 11836 --- [         task-5] m.s.listener.SysLogListener              : 监听到日志操作事件：OptLogDTO{requestIp='127.0.0.1', type='OPT', userName='admin', description='查询用户信息'} 线程id：57
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 自定义spring boot starter
+
+### 开发starter
+
+
+
+
+
