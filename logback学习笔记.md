@@ -3332,3 +3332,750 @@ public class R<T>
 
 
 
+```java
+package mao.tools_log.event;
+
+import mao.tools_log.entity.OptLogDTO;
+import org.springframework.context.ApplicationEvent;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.event
+ * Class(类名): SysLogEvent
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 21:44
+ * Version(版本): 1.0
+ * Description(描述)： 系统日志事件
+ */
+
+public class SysLogEvent extends ApplicationEvent
+{
+    public SysLogEvent(OptLogDTO source)
+    {
+        super(source);
+    }
+}
+```
+
+
+
+
+
+第十六步：编写类SysLogListener
+
+
+
+```java
+package mao.tools_log.event;
+
+import mao.tools_log.entity.OptLogDTO;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.annotation.Async;
+
+import java.util.function.Consumer;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.event
+ * Class(类名): SysLogListener
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 21:45
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+public class SysLogListener
+{
+    private final Consumer<OptLogDTO> consumer;
+
+    public SysLogListener(Consumer<OptLogDTO> consumer)
+    {
+        this.consumer = consumer;
+    }
+
+    @Async
+    @Order
+    @EventListener(SysLogEvent.class)
+    public void saveSysLog(SysLogEvent event)
+    {
+        OptLogDTO optLog = (OptLogDTO) event.getSource();
+        //BaseContextHandler.setDatabase(database);
+        consumer.accept(optLog);
+    }
+}
+```
+
+
+
+
+
+第十七步：编写常量工具类BaseContextConstants
+
+
+
+```java
+package mao.tools_log.context;
+
+/**
+ * 常量工具类
+ */
+public class BaseContextConstants
+{
+    /**
+     *
+     */
+    public static final String TOKEN_NAME = "token";
+    /**
+     *
+     */
+    public static final String JWT_KEY_USER_ID = "userid";
+    /**
+     *
+     */
+    public static final String JWT_KEY_NAME = "name";
+    /**
+     *
+     */
+    public static final String JWT_KEY_ACCOUNT = "account";
+
+    /**
+     * 组织id
+     */
+    public static final String JWT_KEY_ORG_ID = "orgid";
+    /**
+     * 岗位id
+     */
+    public static final String JWT_KEY_STATION_ID = "stationid";
+
+    /**
+     * 动态数据库名前缀。  每个项目配置死的
+     */
+    public static final String DATABASE_NAME = "database_name";
+}
+```
+
+
+
+
+
+第十八步：编写类BaseContextHandler
+
+
+
+```java
+package mao.tools_log.context;
+
+
+import mao.tools_log.utils.NumberHelper;
+import mao.tools_log.utils.StrHelper;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 获取当前域中的 用户id appid 用户昵称
+ * 注意： appid 通过token解析，  用户id 和 用户昵称必须在前端 通过请求头的方法传入。 否则这里无法获取
+ */
+public class BaseContextHandler
+{
+    private static final ThreadLocal<Map<String, String>> THREAD_LOCAL = new ThreadLocal<>();
+
+    public static void set(String key, Long value)
+    {
+        Map<String, String> map = getLocalMap();
+        map.put(key, value == null ? "0" : String.valueOf(value));
+    }
+
+    public static void set(String key, String value)
+    {
+        Map<String, String> map = getLocalMap();
+        map.put(key, value == null ? "" : value);
+    }
+
+    public static void set(String key, Boolean value)
+    {
+        Map<String, String> map = getLocalMap();
+        map.put(key, value == null ? "false" : value.toString());
+    }
+
+
+    public static Map<String, String> getLocalMap()
+    {
+        Map<String, String> map = THREAD_LOCAL.get();
+        if (map == null)
+        {
+            map = new HashMap<>(10);
+            THREAD_LOCAL.set(map);
+        }
+        return map;
+    }
+
+    public static void setLocalMap(Map<String, String> threadLocalMap)
+    {
+        THREAD_LOCAL.set(threadLocalMap);
+    }
+
+
+    public static String get(String key)
+    {
+        Map<String, String> map = getLocalMap();
+        return map.getOrDefault(key, "");
+    }
+
+    /**
+     * 账号id
+     *
+     * @return
+     */
+    public static Long getUserId()
+    {
+        Object value = get(BaseContextConstants.JWT_KEY_USER_ID);
+        return NumberHelper.longValueOf0(value);
+    }
+
+    /**
+     * 账号id
+     *
+     * @param userId
+     */
+    public static void setUserId(Long userId)
+    {
+        set(BaseContextConstants.JWT_KEY_USER_ID, userId);
+    }
+
+    public static void setUserId(String userId)
+    {
+        setUserId(NumberHelper.longValueOf0(userId));
+    }
+
+    /**
+     * 账号表中的name
+     *
+     * @return
+     */
+    public static String getAccount()
+    {
+        Object value = get(BaseContextConstants.JWT_KEY_ACCOUNT);
+        return returnObjectValue(value);
+    }
+
+    /**
+     * 账号表中的name
+     *
+     * @param name
+     */
+    public static void setAccount(String name)
+    {
+        set(BaseContextConstants.JWT_KEY_ACCOUNT, name);
+    }
+
+
+    /**
+     * 登录的账号
+     *
+     * @return
+     */
+    public static String getName()
+    {
+        Object value = get(BaseContextConstants.JWT_KEY_NAME);
+        return returnObjectValue(value);
+    }
+
+    /**
+     * 登录的账号
+     *
+     * @param account
+     */
+    public static void setName(String account)
+    {
+        set(BaseContextConstants.JWT_KEY_NAME, account);
+    }
+
+    /**
+     * 获取用户token
+     *
+     * @return
+     */
+    public static String getToken()
+    {
+        Object value = get(BaseContextConstants.TOKEN_NAME);
+        return StrHelper.getObjectValue(value);
+    }
+
+    public static void setToken(String token)
+    {
+        set(BaseContextConstants.TOKEN_NAME, token);
+    }
+
+    public static Long getOrgId()
+    {
+        Object value = get(BaseContextConstants.JWT_KEY_ORG_ID);
+        return NumberHelper.longValueOf0(value);
+    }
+
+    public static void setOrgId(String val)
+    {
+        set(BaseContextConstants.JWT_KEY_ORG_ID, val);
+    }
+
+
+    public static Long getStationId()
+    {
+        Object value = get(BaseContextConstants.JWT_KEY_STATION_ID);
+        return NumberHelper.longValueOf0(value);
+    }
+
+    public static void setStationId(String val)
+    {
+        set(BaseContextConstants.JWT_KEY_STATION_ID, val);
+    }
+
+    public static String getDatabase()
+    {
+        Object value = get(BaseContextConstants.DATABASE_NAME);
+        return StrHelper.getObjectValue(value);
+    }
+
+    public static void setDatabase(String val)
+    {
+        set(BaseContextConstants.DATABASE_NAME, val);
+    }
+
+
+    private static String returnObjectValue(Object value)
+    {
+        return value == null ? "" : value.toString();
+    }
+
+    public static void remove()
+    {
+        if (THREAD_LOCAL != null)
+        {
+            THREAD_LOCAL.remove();
+        }
+    }
+
+}
+```
+
+
+
+
+
+第十九步：编写注解SysLog
+
+
+
+```java
+package mao.tools_log.annotation;
+
+import java.lang.annotation.*;
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface SysLog
+{
+    /**
+     * 描述
+     *
+     * @return {String}
+     */
+    String value();
+
+    /**
+     * 记录执行参数
+     *
+     * @return boolean
+     */
+    boolean recordRequestParam() default true;
+
+    /**
+     * 记录返回参数
+     *
+     * @return boolean
+     */
+    boolean recordResponseParam() default true;
+}
+```
+
+
+
+
+
+第二十步：编写类SysLogAspect
+
+
+
+```java
+package mao.tools_log.aspect;
+
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.extra.servlet.ServletUtil;
+import com.alibaba.fastjson.JSONObject;
+import io.swagger.annotations.Api;
+import mao.tools_log.context.BaseContextHandler;
+import mao.tools_log.entity.OptLogDTO;
+import mao.tools_log.entity.R;
+import mao.tools_log.event.SysLogEvent;
+
+import mao.tools_log.utils.LogUtil;
+import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.*;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Consumer;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.aspect
+ * Class(类名): SysLogAspect
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 21:52
+ * Version(版本): 1.0
+ * Description(描述)： 操作日志使用spring event异步入库
+ */
+
+@Aspect
+public class SysLogAspect
+{
+    /**
+     * 事件发布是由ApplicationContext对象管控的，我们发布事件前需要注入ApplicationContext对象调用publishEvent方法完成事件发布
+     **/
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    private static final ThreadLocal<OptLogDTO> THREAD_LOCAL = new ThreadLocal<>();
+
+    private static final Logger log = LoggerFactory.getLogger(SysLogAspect.class);
+
+    /***
+     * 定义controller切入点拦截规则，拦截SysLog注解的方法
+     */
+    @Pointcut("@annotation(mao.tools_log.annotation.SysLog)")
+    public void sysLogAspect()
+    {
+
+    }
+
+    private OptLogDTO get()
+    {
+        OptLogDTO sysLog = THREAD_LOCAL.get();
+        if (sysLog == null)
+        {
+            return new OptLogDTO();
+        }
+        return sysLog;
+    }
+
+    @Before(value = "sysLogAspect()")
+    public void recordLog(JoinPoint joinPoint) throws Throwable
+    {
+        tryCatch((val) ->
+        {
+            // 开始时间
+            OptLogDTO sysLog = get();
+            sysLog.setCreateUser(BaseContextHandler.getUserId());
+            sysLog.setUserName(BaseContextHandler.getName());
+            String controllerDescription = "";
+            Api api = joinPoint.getTarget().getClass().getAnnotation(Api.class);
+            if (api != null)
+            {
+                String[] tags = api.tags();
+                if (tags != null && tags.length > 0)
+                {
+                    controllerDescription = tags[0];
+                }
+            }
+
+            String controllerMethodDescription = LogUtil.getControllerMethodDescription(joinPoint);
+            if (StrUtil.isEmpty(controllerDescription))
+            {
+                sysLog.setDescription(controllerMethodDescription);
+            }
+            else
+            {
+                sysLog.setDescription(controllerDescription + "-" + controllerMethodDescription);
+            }
+
+            // 类名
+            sysLog.setClassPath(joinPoint.getTarget().getClass().getName());
+            //获取执行的方法名
+            sysLog.setActionMethod(joinPoint.getSignature().getName());
+
+
+            // 参数
+            Object[] args = joinPoint.getArgs();
+
+            String strArgs = "";
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+            try
+            {
+                if (!request.getContentType().contains("multipart/form-data"))
+                {
+                    strArgs = JSONObject.toJSONString(args);
+                }
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    strArgs = Arrays.toString(args);
+                }
+                catch (Exception ex)
+                {
+                    log.warn("解析参数异常", ex);
+                }
+            }
+            sysLog.setParams(getText(strArgs));
+
+            if (request != null)
+            {
+                sysLog.setRequestIp(ServletUtil.getClientIP(request));
+                sysLog.setRequestUri(URLUtil.getPath(request.getRequestURI()));
+                sysLog.setHttpMethod(request.getMethod());
+                sysLog.setUa(StrUtil.sub(request.getHeader("user-agent"), 0, 500));
+            }
+            sysLog.setStartTime(LocalDateTime.now());
+
+            THREAD_LOCAL.set(sysLog);
+        });
+    }
+
+
+    private void tryCatch(Consumer<String> consumer)
+    {
+        try
+        {
+            consumer.accept("");
+        }
+        catch (Exception e)
+        {
+            log.warn("记录操作日志异常", e);
+            THREAD_LOCAL.remove();
+        }
+    }
+
+    /**
+     * 返回通知
+     *
+     * @param ret 对象R
+     * @throws Throwable
+     */
+    @AfterReturning(returning = "ret", pointcut = "sysLogAspect()")
+    public void doAfterReturning(Object ret)
+    {
+        tryCatch((aaa) ->
+        {
+            R r = Convert.convert(R.class, ret);
+            OptLogDTO sysLog = get();
+            if (r == null)
+            {
+                sysLog.setType("OPT");
+            }
+            else
+            {
+                if (r.getIsSuccess())
+                {
+                    sysLog.setType("OPT");
+                }
+                else
+                {
+                    sysLog.setType("EX");
+                    sysLog.setExDetail(r.getMsg());
+                }
+                sysLog.setResult(getText(r.toString()));
+            }
+
+            publishEvent(sysLog);
+        });
+
+    }
+
+    private void publishEvent(OptLogDTO sysLog)
+    {
+        sysLog.setFinishTime(LocalDateTime.now());
+        sysLog.setConsumingTime(sysLog.getStartTime().until(sysLog.getFinishTime(), ChronoUnit.MILLIS));
+        applicationContext.publishEvent(new SysLogEvent(sysLog));
+        THREAD_LOCAL.remove();
+    }
+
+    /**
+     * 异常通知
+     *
+     * @param e Throwable
+     */
+    @AfterThrowing(pointcut = "sysLogAspect()", throwing = "e")
+    public void doAfterThrowable(Throwable e)
+    {
+        tryCatch((aaa) ->
+        {
+            OptLogDTO sysLog = get();
+            sysLog.setType("EX");
+
+            // 异常对象
+            sysLog.setExDetail(LogUtil.getStackTrace(e));
+            // 异常信息
+            sysLog.setExDesc(e.getMessage());
+
+            publishEvent(sysLog);
+        });
+    }
+
+
+    /**
+     * 截取指定长度的字符串
+     *
+     * @param val String字符串
+     * @return {@link String}
+     */
+    private String getText(String val)
+    {
+        return StrUtil.sub(val, 0, 65535);
+    }
+
+//    @Around("@annotation(sLog)")
+//    @SneakyThrows
+//    public Object around(ProceedingJoinPoint point, SysLog sLog) {
+//        log.info("当前线程id={}", Thread.currentThread().getId());
+//
+//        String strClassName = point.getTarget().getClass().getName();
+//        String strMethodName = point.getSignature().getName();
+//
+//        log.info("[类名]:{},[方法]:{}", strClassName, strMethodName);
+//        Log sysLog = Log.builder().build();
+//
+//        // 开始时间
+//        Long startTime = Instant.now().toEpochMilli();
+//        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+//        BaseContextHandler.getAccount();
+//        sysLog.setCreateUser(BaseContextHandler.getUserId());
+//        sysLog.setRequestIp(ServletUtil.getClientIP(request));
+//        sysLog.setUserName(BaseContextHandler.getNickName());
+//        sysLog.setDescription(LogUtil.getControllerMethodDescription(point));
+//
+//        // 类名
+//        sysLog.setClassPath(point.getTarget().getClass().getName());
+//        //获取执行的方法名
+//        sysLog.setActionMethod(point.getSignature().getName());
+//        sysLog.setRequestUri(URLUtil.getPath(request.getRequestURI()));
+//        sysLog.setHttpMethod(HttpMethod.get(request.getMethod()));
+//        // 参数
+//        Object[] args = point.getArgs();
+//        sysLog.setParams(getText(JSONObject.toJSONString(args)));
+//
+//        sysLog.setStartTime(LocalDateTime.now());
+//        sysLog.setUa(request.getHeader("user-agent"));
+//
+//        // 发送异步日志事件
+//        Object obj = point.proceed();
+//
+//        R r = Convert.convert(R.class, obj);
+//        if (r.getIsSuccess()) {
+//            sysLog.setType(LogType.OPT);
+//        } else {
+//            sysLog.setType(LogType.EX);
+//            sysLog.setExDetail(r.getMsg());
+//        }
+//        if (r != null) {
+//            sysLog.setResult(getText(r.toString()));
+//        }
+//
+//        sysLog.setFinishTime(LocalDateTime.now());
+//        long endTime = Instant.now().toEpochMilli();
+//        sysLog.setConsumingTime(endTime - startTime);
+//
+//        applicationContext.publishEvent(new SysLogEvent(sysLog));
+//        return obj;
+//    }
+
+}
+```
+
+
+
+
+
+
+
+第二十一步：编写配置类LogAutoConfiguration
+
+
+
+```java
+package mao.tools_log.config;
+
+import mao.tools_log.aspect.SysLogAspect;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.config
+ * Class(类名): LogAutoConfiguration
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:29
+ * Version(版本): 1.0
+ * Description(描述)：
+ * <p>
+ * 启动条件：
+ * 1，存在web环境
+ * 2，配置文件中log.enabled=true
+ * 3，配置文件中不存在：log.enabled 值
+ */
+
+@EnableAsync
+@Configuration
+@ConditionalOnWebApplication
+@ConditionalOnProperty(name = "log.enabled", havingValue = "true", matchIfMissing = true)
+public class LogAutoConfiguration
+{
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SysLogAspect sysLogAspect()
+    {
+        return new SysLogAspect();
+    }
+
+
+}
+```
+
+
+
+
+
+第二十二步：
