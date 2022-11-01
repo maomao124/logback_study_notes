@@ -2074,3 +2074,1261 @@ public class ApplicationLoggerInitializer implements ApplicationContextInitializ
 
 
 
+```java
+package mao.tools_log.exception.code;
+
+/**
+ *
+ */
+public interface BaseExceptionCode
+{
+    /**
+     * 异常编码
+     *
+     * @return int
+     */
+    int getCode();
+
+    /**
+     * 异常消息
+     *
+     * @return String
+     */
+    String getMsg();
+}
+```
+
+
+
+
+
+第九步：编写类ExceptionCode
+
+
+
+```java
+package mao.tools_log.exception.code;
+
+
+/**
+ * 全局错误码 10000-15000
+ * <p>
+ * 预警异常编码    范围： 30000~34999
+ * 标准服务异常编码 范围：35000~39999
+ * 邮件服务异常编码 范围：40000~44999
+ * 短信服务异常编码 范围：45000~49999
+ * 权限服务异常编码 范围：50000-59999
+ * 文件服务异常编码 范围：60000~64999
+ * 日志服务异常编码 范围：65000~69999
+ * 消息服务异常编码 范围：70000~74999
+ * 开发者平台异常编码 范围：75000~79999
+ * 搜索服务异常编码 范围：80000-84999
+ * 共享交换异常编码 范围：85000-89999
+ * 移动终端平台 异常码 范围：90000-94999
+ * <p>
+ * 安全保障平台    范围：        95000-99999
+ * 软硬件平台 异常编码 范围：    100000-104999
+ * 运维服务平台 异常编码 范围：  105000-109999
+ * 统一监管平台异常 编码 范围：  110000-114999
+ * 认证方面的异常编码  范围：115000-115999
+ */
+public enum ExceptionCode implements BaseExceptionCode
+{
+
+    //系统相关 start
+    SUCCESS(0, "成功"),
+    SYSTEM_BUSY(-1, "系统繁忙~请稍后再试~"),
+    SYSTEM_TIMEOUT(-2, "系统维护中~请稍后再试~"),
+    PARAM_EX(-3, "参数类型解析异常"),
+    SQL_EX(-4, "运行SQL出现异常"),
+    NULL_POINT_EX(-5, "空指针异常"),
+    ILLEGALA_ARGUMENT_EX(-6, "无效参数异常"),
+    MEDIA_TYPE_EX(-7, "请求类型异常"),
+    LOAD_RESOURCES_ERROR(-8, "加载资源出错"),
+    BASE_VALID_PARAM(-9, "统一验证参数异常"),
+    OPERATION_EX(-10, "操作异常"),
+
+
+    OK(200, "OK"),
+    BAD_REQUEST(400, "错误的请求"),
+    /**
+     * {@code 401 Unauthorized}.
+     *
+     * @see <a href="http://tools.ietf.org/html/rfc7235#section-3.1">HTTP/1.1: Authentication, section 3.1</a>
+     */
+    UNAUTHORIZED(401, "未经授权"),
+    /**
+     * {@code 404 Not Found}.
+     *
+     * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.5.4">HTTP/1.1: Semantics and Content, section 6.5.4</a>
+     */
+    NOT_FOUND(404, "没有找到资源"),
+    METHOD_NOT_ALLOWED(405, "不支持当前请求类型"),
+
+    TOO_MANY_REQUESTS(429, "请求超过次数限制"),
+    INTERNAL_SERVER_ERROR(500, "内部服务错误"),
+    BAD_GATEWAY(502, "网关错误"),
+    GATEWAY_TIMEOUT(504, "网关超时"),
+    //系统相关 end
+
+    REQUIRED_FILE_PARAM_EX(1001, "请求中必须至少包含一个有效文件"),
+    //jwt token 相关 start
+
+    JWT_TOKEN_EXPIRED(40001, "会话超时，请重新登录"),
+    JWT_SIGNATURE(40002, "不合法的token，请认真比对 token 的签名"),
+    JWT_ILLEGAL_ARGUMENT(40003, "缺少token参数"),
+    JWT_GEN_TOKEN_FAIL(40004, "生成token失败"),
+    JWT_PARSER_TOKEN_FAIL(40005, "解析token失败"),
+    JWT_USER_INVALID(40006, "用户名或密码错误"),
+    JWT_USER_ENABLED(40007, "用户已经被禁用！"),
+    //jwt token 相关 end
+
+    ;
+
+    private int code;
+    private String msg;
+
+    ExceptionCode(int code, String msg)
+    {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    @Override
+    public int getCode()
+    {
+        return code;
+    }
+
+    @Override
+    public String getMsg()
+    {
+        return msg;
+    }
+
+
+    public ExceptionCode build(String msg, Object... param)
+    {
+        this.msg = String.format(msg, param);
+        return this;
+    }
+
+    public ExceptionCode param(Object... param)
+    {
+        msg = String.format(msg, param);
+        return this;
+    }
+}
+```
+
+
+
+
+
+第十步：编写接口BaseException
+
+
+
+```java
+package mao.tools_log.exception;
+
+/**
+ * 异常接口类
+ */
+public interface BaseException
+{
+
+    /**
+     * 统一参数验证异常码
+     */
+    int BASE_VALID_PARAM = -9;
+
+    /**
+     * 返回异常信息
+     *
+     * @return String
+     */
+    String getMessage();
+
+    /**
+     * 返回异常编码
+     *
+     * @return int
+     */
+    int getCode();
+
+}
+```
+
+
+
+
+
+第十一步：编写类BaseUncheckedException
+
+
+
+```java
+package mao.tools_log.exception;
+
+/**
+ * 非运行期异常基类，所有自定义非运行时异常继承该类
+ */
+public class BaseUncheckedException extends RuntimeException implements BaseException
+{
+
+    private static final long serialVersionUID = -778887391066124051L;
+
+    /**
+     * 异常信息
+     */
+    protected String message;
+
+    /**
+     * 具体异常码
+     */
+    protected int code;
+
+    public BaseUncheckedException(int code, String message)
+    {
+        super(message);
+        this.code = code;
+        this.message = message;
+    }
+
+    public BaseUncheckedException(int code, String format, Object... args)
+    {
+        super(String.format(format, args));
+        this.code = code;
+        this.message = String.format(format, args);
+    }
+
+
+    @Override
+    public String getMessage()
+    {
+        return message;
+    }
+
+    @Override
+    public int getCode()
+    {
+        return code;
+    }
+}
+```
+
+
+
+
+
+第十二步：编写类BizException
+
+
+
+```java
+package mao.tools_log.exception;
+
+
+import mao.tools_log.exception.code.BaseExceptionCode;
+
+/**
+ * 业务异常
+ * 用于在处理业务逻辑时，进行抛出的异常。
+ */
+public class BizException extends BaseUncheckedException
+{
+
+    private static final long serialVersionUID = -3843907364558373817L;
+
+    public BizException(String message)
+    {
+        super(-1, message);
+    }
+
+    public BizException(int code, String message)
+    {
+        super(code, message);
+    }
+
+    public BizException(int code, String message, Object... args)
+    {
+        super(code, message, args);
+    }
+
+    /**
+     * 实例化异常
+     *
+     * @param code    自定义异常编码
+     * @param message 自定义异常消息
+     * @param args    已定义异常参数
+     * @return BizException
+     */
+    public static BizException wrap(int code, String message, Object... args)
+    {
+        return new BizException(code, message, args);
+    }
+
+    public static BizException wrap(String message, Object... args)
+    {
+        return new BizException(-1, message, args);
+    }
+
+    public static BizException validFail(String message, Object... args)
+    {
+        return new BizException(-9, message, args);
+    }
+
+    public static BizException wrap(BaseExceptionCode ex)
+    {
+        return new BizException(ex.getCode(), ex.getMsg());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "BizException [message=" + message + ", code=" + code + "]";
+    }
+
+}
+```
+
+
+
+
+
+
+
+第十三步：编写实体类OptLogDTO
+
+
+
+```java
+package mao.tools_log.entity;
+
+import java.time.LocalDateTime;
+
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.entity
+ * Class(类名): OptLogDTO
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 21:47
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+public class OptLogDTO
+{
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 操作IP
+     */
+    private String requestIp;
+
+    /**
+     * 日志类型
+     * #LogType{OPT:操作类型;EX:异常类型}
+     */
+    private String type;
+
+    /**
+     * 操作人
+     */
+    private String userName;
+
+    /**
+     * 操作描述
+     */
+    private String description;
+
+    /**
+     * 类路径
+     */
+    private String classPath;
+
+    /**
+     * 请求类型
+     */
+    private String actionMethod;
+
+    /**
+     * 请求地址
+     */
+    private String requestUri;
+
+    /**
+     * 请求类型
+     * #HttpMethod{GET:GET请求;POST:POST请求;PUT:PUT请求;DELETE:DELETE请求;PATCH:PATCH请求;
+     * TRACE:TRACE请求;HEAD:HEAD请求;OPTIONS:OPTIONS请求;}
+     */
+    private String httpMethod;
+
+    /**
+     * 请求参数
+     */
+    private String params;
+
+    /**
+     * 返回值
+     */
+    private String result;
+
+    /**
+     * 异常详情信息
+     */
+    private String exDesc;
+
+    /**
+     * 异常描述
+     */
+    private String exDetail;
+
+    /**
+     * 开始时间
+     */
+    private LocalDateTime startTime;
+
+    /**
+     * 完成时间
+     */
+    private LocalDateTime finishTime;
+
+    /**
+     * 消耗时间
+     */
+    private Long consumingTime;
+
+    /**
+     * 浏览器
+     */
+    private String ua;
+
+    /**
+     * 创建用户
+     */
+    private Long createUser;
+
+
+    /**
+     * Instantiates a new Opt log dto.
+     */
+    public OptLogDTO()
+    {
+
+    }
+
+    /**
+     * Instantiates a new Opt log dto.
+     *
+     * @param requestIp     the request ip
+     * @param type          the type
+     * @param userName      the user name
+     * @param description   the description
+     * @param classPath     the class path
+     * @param actionMethod  the action method
+     * @param requestUri    the request uri
+     * @param httpMethod    the http method
+     * @param params        the params
+     * @param result        the result
+     * @param exDesc        the ex desc
+     * @param exDetail      the ex detail
+     * @param startTime     the start time
+     * @param finishTime    the finish time
+     * @param consumingTime the consuming time
+     * @param ua            the ua
+     * @param createUser    the create user
+     */
+    public OptLogDTO(String requestIp, String type, String userName, String description,
+                     String classPath, String actionMethod, String requestUri,
+                     String httpMethod, String params, String result, String exDesc,
+                     String exDetail, LocalDateTime startTime, LocalDateTime finishTime,
+                     Long consumingTime, String ua, Long createUser)
+    {
+        this.requestIp = requestIp;
+        this.type = type;
+        this.userName = userName;
+        this.description = description;
+        this.classPath = classPath;
+        this.actionMethod = actionMethod;
+        this.requestUri = requestUri;
+        this.httpMethod = httpMethod;
+        this.params = params;
+        this.result = result;
+        this.exDesc = exDesc;
+        this.exDetail = exDetail;
+        this.startTime = startTime;
+        this.finishTime = finishTime;
+        this.consumingTime = consumingTime;
+        this.ua = ua;
+        this.createUser = createUser;
+    }
+
+    /**
+     * Gets request ip.
+     *
+     * @return the request ip
+     */
+    public String getRequestIp()
+    {
+        return requestIp;
+    }
+
+    /**
+     * Sets request ip.
+     *
+     * @param requestIp the request ip
+     */
+    public void setRequestIp(String requestIp)
+    {
+        this.requestIp = requestIp;
+    }
+
+    /**
+     * Gets type.
+     *
+     * @return the type
+     */
+    public String getType()
+    {
+        return type;
+    }
+
+    /**
+     * Sets type.
+     *
+     * @param type the type
+     */
+    public void setType(String type)
+    {
+        this.type = type;
+    }
+
+    /**
+     * Gets user name.
+     *
+     * @return the user name
+     */
+    public String getUserName()
+    {
+        return userName;
+    }
+
+    /**
+     * Sets user name.
+     *
+     * @param userName the user name
+     */
+    public void setUserName(String userName)
+    {
+        this.userName = userName;
+    }
+
+    /**
+     * Gets description.
+     *
+     * @return the description
+     */
+    public String getDescription()
+    {
+        return description;
+    }
+
+    /**
+     * Sets description.
+     *
+     * @param description the description
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
+    }
+
+    /**
+     * Gets class path.
+     *
+     * @return the class path
+     */
+    public String getClassPath()
+    {
+        return classPath;
+    }
+
+    /**
+     * Sets class path.
+     *
+     * @param classPath the class path
+     */
+    public void setClassPath(String classPath)
+    {
+        this.classPath = classPath;
+    }
+
+    /**
+     * Gets action method.
+     *
+     * @return the action method
+     */
+    public String getActionMethod()
+    {
+        return actionMethod;
+    }
+
+    /**
+     * Sets action method.
+     *
+     * @param actionMethod the action method
+     */
+    public void setActionMethod(String actionMethod)
+    {
+        this.actionMethod = actionMethod;
+    }
+
+    /**
+     * Gets request uri.
+     *
+     * @return the request uri
+     */
+    public String getRequestUri()
+    {
+        return requestUri;
+    }
+
+    /**
+     * Sets request uri.
+     *
+     * @param requestUri the request uri
+     */
+    public void setRequestUri(String requestUri)
+    {
+        this.requestUri = requestUri;
+    }
+
+    /**
+     * Gets http method.
+     *
+     * @return the http method
+     */
+    public String getHttpMethod()
+    {
+        return httpMethod;
+    }
+
+    /**
+     * Sets http method.
+     *
+     * @param httpMethod the http method
+     */
+    public void setHttpMethod(String httpMethod)
+    {
+        this.httpMethod = httpMethod;
+    }
+
+    /**
+     * Gets params.
+     *
+     * @return the params
+     */
+    public String getParams()
+    {
+        return params;
+    }
+
+    /**
+     * Sets params.
+     *
+     * @param params the params
+     */
+    public void setParams(String params)
+    {
+        this.params = params;
+    }
+
+    /**
+     * Gets result.
+     *
+     * @return the result
+     */
+    public String getResult()
+    {
+        return result;
+    }
+
+    /**
+     * Sets result.
+     *
+     * @param result the result
+     */
+    public void setResult(String result)
+    {
+        this.result = result;
+    }
+
+    /**
+     * Gets ex desc.
+     *
+     * @return the ex desc
+     */
+    public String getExDesc()
+    {
+        return exDesc;
+    }
+
+    /**
+     * Sets ex desc.
+     *
+     * @param exDesc the ex desc
+     */
+    public void setExDesc(String exDesc)
+    {
+        this.exDesc = exDesc;
+    }
+
+    /**
+     * Gets ex detail.
+     *
+     * @return the ex detail
+     */
+    public String getExDetail()
+    {
+        return exDetail;
+    }
+
+    /**
+     * Sets ex detail.
+     *
+     * @param exDetail the ex detail
+     */
+    public void setExDetail(String exDetail)
+    {
+        this.exDetail = exDetail;
+    }
+
+    /**
+     * Gets start time.
+     *
+     * @return the start time
+     */
+    public LocalDateTime getStartTime()
+    {
+        return startTime;
+    }
+
+    /**
+     * Sets start time.
+     *
+     * @param startTime the start time
+     */
+    public void setStartTime(LocalDateTime startTime)
+    {
+        this.startTime = startTime;
+    }
+
+    /**
+     * Gets finish time.
+     *
+     * @return the finish time
+     */
+    public LocalDateTime getFinishTime()
+    {
+        return finishTime;
+    }
+
+    /**
+     * Sets finish time.
+     *
+     * @param finishTime the finish time
+     */
+    public void setFinishTime(LocalDateTime finishTime)
+    {
+        this.finishTime = finishTime;
+    }
+
+    /**
+     * Gets consuming time.
+     *
+     * @return the consuming time
+     */
+    public Long getConsumingTime()
+    {
+        return consumingTime;
+    }
+
+    /**
+     * Sets consuming time.
+     *
+     * @param consumingTime the consuming time
+     */
+    public void setConsumingTime(Long consumingTime)
+    {
+        this.consumingTime = consumingTime;
+    }
+
+    /**
+     * Gets ua.
+     *
+     * @return the ua
+     */
+    public String getUa()
+    {
+        return ua;
+    }
+
+    /**
+     * Sets ua.
+     *
+     * @param ua the ua
+     */
+    public void setUa(String ua)
+    {
+        this.ua = ua;
+    }
+
+    /**
+     * Gets create user.
+     *
+     * @return the create user
+     */
+    public Long getCreateUser()
+    {
+        return createUser;
+    }
+
+    /**
+     * Sets create user.
+     *
+     * @param createUser the create user
+     */
+    public void setCreateUser(Long createUser)
+    {
+        this.createUser = createUser;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+
+        OptLogDTO optLogDTO = (OptLogDTO) o;
+
+        if (getRequestIp() != null ? !getRequestIp().equals(optLogDTO.getRequestIp()) : optLogDTO.getRequestIp() != null)
+        {
+            return false;
+        }
+        if (getType() != null ? !getType().equals(optLogDTO.getType()) : optLogDTO.getType() != null)
+        {
+            return false;
+        }
+        if (getUserName() != null ? !getUserName().equals(optLogDTO.getUserName()) : optLogDTO.getUserName() != null)
+        {
+            return false;
+        }
+        if (getDescription() != null ? !getDescription().equals(optLogDTO.getDescription()) : optLogDTO.getDescription() != null)
+        {
+            return false;
+        }
+        if (getClassPath() != null ? !getClassPath().equals(optLogDTO.getClassPath()) : optLogDTO.getClassPath() != null)
+        {
+            return false;
+        }
+        if (getActionMethod() != null ? !getActionMethod().equals(optLogDTO.getActionMethod()) : optLogDTO.getActionMethod() != null)
+        {
+            return false;
+        }
+        if (getRequestUri() != null ? !getRequestUri().equals(optLogDTO.getRequestUri()) : optLogDTO.getRequestUri() != null)
+        {
+            return false;
+        }
+        if (getHttpMethod() != null ? !getHttpMethod().equals(optLogDTO.getHttpMethod()) : optLogDTO.getHttpMethod() != null)
+        {
+            return false;
+        }
+        if (getParams() != null ? !getParams().equals(optLogDTO.getParams()) : optLogDTO.getParams() != null)
+        {
+            return false;
+        }
+        if (getResult() != null ? !getResult().equals(optLogDTO.getResult()) : optLogDTO.getResult() != null)
+        {
+            return false;
+        }
+        if (getExDesc() != null ? !getExDesc().equals(optLogDTO.getExDesc()) : optLogDTO.getExDesc() != null)
+        {
+            return false;
+        }
+        if (getExDetail() != null ? !getExDetail().equals(optLogDTO.getExDetail()) : optLogDTO.getExDetail() != null)
+        {
+            return false;
+        }
+        if (getStartTime() != null ? !getStartTime().equals(optLogDTO.getStartTime()) : optLogDTO.getStartTime() != null)
+        {
+            return false;
+        }
+        if (getFinishTime() != null ? !getFinishTime().equals(optLogDTO.getFinishTime()) : optLogDTO.getFinishTime() != null)
+        {
+            return false;
+        }
+        if (getConsumingTime() != null ? !getConsumingTime().equals(optLogDTO.getConsumingTime()) : optLogDTO.getConsumingTime() != null)
+        {
+            return false;
+        }
+        if (getUa() != null ? !getUa().equals(optLogDTO.getUa()) : optLogDTO.getUa() != null)
+        {
+            return false;
+        }
+        return getCreateUser() != null ? getCreateUser().equals(optLogDTO.getCreateUser()) : optLogDTO.getCreateUser() == null;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result1 = getRequestIp() != null ? getRequestIp().hashCode() : 0;
+        result1 = 31 * result1 + (getType() != null ? getType().hashCode() : 0);
+        result1 = 31 * result1 + (getUserName() != null ? getUserName().hashCode() : 0);
+        result1 = 31 * result1 + (getDescription() != null ? getDescription().hashCode() : 0);
+        result1 = 31 * result1 + (getClassPath() != null ? getClassPath().hashCode() : 0);
+        result1 = 31 * result1 + (getActionMethod() != null ? getActionMethod().hashCode() : 0);
+        result1 = 31 * result1 + (getRequestUri() != null ? getRequestUri().hashCode() : 0);
+        result1 = 31 * result1 + (getHttpMethod() != null ? getHttpMethod().hashCode() : 0);
+        result1 = 31 * result1 + (getParams() != null ? getParams().hashCode() : 0);
+        result1 = 31 * result1 + (getResult() != null ? getResult().hashCode() : 0);
+        result1 = 31 * result1 + (getExDesc() != null ? getExDesc().hashCode() : 0);
+        result1 = 31 * result1 + (getExDetail() != null ? getExDetail().hashCode() : 0);
+        result1 = 31 * result1 + (getStartTime() != null ? getStartTime().hashCode() : 0);
+        result1 = 31 * result1 + (getFinishTime() != null ? getFinishTime().hashCode() : 0);
+        result1 = 31 * result1 + (getConsumingTime() != null ? getConsumingTime().hashCode() : 0);
+        result1 = 31 * result1 + (getUa() != null ? getUa().hashCode() : 0);
+        result1 = 31 * result1 + (getCreateUser() != null ? getCreateUser().hashCode() : 0);
+        return result1;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("OptLogDTO{");
+        sb.append("requestIp='").append(requestIp).append('\'');
+        sb.append(", type='").append(type).append('\'');
+        sb.append(", userName='").append(userName).append('\'');
+        sb.append(", description='").append(description).append('\'');
+        sb.append(", classPath='").append(classPath).append('\'');
+        sb.append(", actionMethod='").append(actionMethod).append('\'');
+        sb.append(", requestUri='").append(requestUri).append('\'');
+        sb.append(", httpMethod='").append(httpMethod).append('\'');
+        sb.append(", params='").append(params).append('\'');
+        sb.append(", result='").append(result).append('\'');
+        sb.append(", exDesc='").append(exDesc).append('\'');
+        sb.append(", exDetail='").append(exDetail).append('\'');
+        sb.append(", startTime=").append(startTime);
+        sb.append(", finishTime=").append(finishTime);
+        sb.append(", consumingTime=").append(consumingTime);
+        sb.append(", ua='").append(ua).append('\'');
+        sb.append(", createUser=").append(createUser);
+        sb.append('}');
+        return sb.toString();
+    }
+}
+```
+
+
+
+
+
+
+
+第十四步：编写实体类R\<T>
+
+
+
+```java
+package mao.tools_log.entity;
+
+import java.util.Map;
+
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+
+
+import io.swagger.annotations.ApiModelProperty;
+import mao.tools_log.exception.BizException;
+import mao.tools_log.exception.code.BaseExceptionCode;
+
+
+@SuppressWarnings({"AlibabaClassNamingShouldBeCamel"})
+public class R<T>
+{
+    public static final String DEF_ERROR_MESSAGE = "系统繁忙，请稍候再试";
+    public static final String HYSTRIX_ERROR_MESSAGE = "请求超时，请稍候再试";
+    public static final int SUCCESS_CODE = 0;
+    public static final int FAIL_CODE = -1;
+    public static final int TIMEOUT_CODE = -2;
+    /**
+     * 统一参数验证异常
+     */
+    public static final int VALID_EX_CODE = -9;
+    public static final int OPERATION_EX_CODE = -10;
+    /**
+     * 调用是否成功标识，0：成功，-1:系统繁忙，此时请开发者稍候再试 详情见[ExceptionCode]
+     */
+    @ApiModelProperty(value = "响应编码:0/200-请求处理成功")
+    private int code;
+
+    /**
+     * 调用结果
+     */
+    @ApiModelProperty(value = "响应数据")
+    private T data;
+
+    /**
+     * 结果消息，如果调用成功，消息通常为空T
+     */
+    @ApiModelProperty(value = "提示消息")
+    private String msg = "ok";
+
+    @ApiModelProperty(value = "请求路径")
+    private String path;
+    /**
+     * 附加数据
+     */
+    @ApiModelProperty(value = "附加数据")
+    private Map<String, Object> extra;
+
+    /**
+     * 响应时间
+     */
+    @ApiModelProperty(value = "响应时间戳")
+    private long timestamp = System.currentTimeMillis();
+
+    private R()
+    {
+        super();
+    }
+
+    public R(int code, T data, String msg)
+    {
+        this.code = code;
+        this.data = data;
+        this.msg = msg;
+    }
+
+    public static <E> R<E> result(int code, E data, String msg)
+    {
+        return new R<>(code, data, msg);
+    }
+
+    /**
+     * 请求成功消息
+     *
+     * @param data 结果
+     * @return RPC调用结果
+     */
+    public static <E> R<E> success(E data)
+    {
+        return new R<>(SUCCESS_CODE, data, "ok");
+    }
+
+    public static R<Boolean> success()
+    {
+        return new R<>(SUCCESS_CODE, true, "ok");
+    }
+
+    /**
+     * 请求成功方法 ，data返回值，msg提示信息
+     *
+     * @param data 结果
+     * @param msg  消息
+     * @return RPC调用结果
+     */
+    public static <E> R<E> success(E data, String msg)
+    {
+        return new R<>(SUCCESS_CODE, data, msg);
+    }
+
+    /**
+     * 请求失败消息
+     *
+     * @param msg 消息
+     * @return RPC调用结果
+     */
+    public static <E> R<E> fail(int code, String msg)
+    {
+        return new R<>(code, null, (msg == null || msg.isEmpty()) ? DEF_ERROR_MESSAGE : msg);
+    }
+
+    public static <E> R<E> fail(String msg)
+    {
+        return fail(OPERATION_EX_CODE, msg);
+    }
+
+    public static <E> R<E> fail(String msg, Object... args)
+    {
+        String message = (msg == null || msg.isEmpty()) ? DEF_ERROR_MESSAGE : msg;
+        return new R<>(OPERATION_EX_CODE, null, String.format(message, args));
+    }
+
+    public static <E> R<E> fail(BaseExceptionCode exceptionCode)
+    {
+        return validFail(exceptionCode);
+    }
+
+    public static <E> R<E> fail(BizException exception)
+    {
+        if (exception == null)
+        {
+            return fail(DEF_ERROR_MESSAGE);
+        }
+        return new R<>(exception.getCode(), null, exception.getMessage());
+    }
+
+    /**
+     * 请求失败消息，根据异常类型，获取不同的提供消息
+     *
+     * @param throwable 异常
+     * @return RPC调用结果
+     */
+    public static <E> R<E> fail(Throwable throwable)
+    {
+        return fail(FAIL_CODE, throwable != null ? throwable.getMessage() : DEF_ERROR_MESSAGE);
+    }
+
+    public static <E> R<E> validFail(String msg)
+    {
+        return new R<>(VALID_EX_CODE, null, (msg == null || msg.isEmpty()) ? DEF_ERROR_MESSAGE : msg);
+    }
+
+    public static <E> R<E> validFail(String msg, Object... args)
+    {
+        String message = (msg == null || msg.isEmpty()) ? DEF_ERROR_MESSAGE : msg;
+        return new R<>(VALID_EX_CODE, null, String.format(message, args));
+    }
+
+    public static <E> R<E> validFail(BaseExceptionCode exceptionCode)
+    {
+        return new R<>(exceptionCode.getCode(), null,
+                (exceptionCode.getMsg() == null || exceptionCode.getMsg().isEmpty()) ? DEF_ERROR_MESSAGE : exceptionCode.getMsg());
+    }
+
+    public static <E> R<E> timeout()
+    {
+        return fail(TIMEOUT_CODE, HYSTRIX_ERROR_MESSAGE);
+    }
+
+
+    public R<T> put(String key, Object value)
+    {
+        if (this.extra == null)
+        {
+            this.extra = Maps.newHashMap();
+        }
+        this.extra.put(key, value);
+        return this;
+    }
+
+    /**
+     * 逻辑处理是否成功
+     *
+     * @return 是否成功
+     */
+    public Boolean getIsSuccess()
+    {
+        return this.code == SUCCESS_CODE || this.code == 200;
+    }
+
+    /**
+     * 逻辑处理是否失败
+     *
+     * @return 是否失败
+     */
+    public Boolean getIsError()
+    {
+        return !getIsSuccess();
+    }
+
+    @Override
+    public String toString()
+    {
+        return JSONObject.toJSONString(this);
+    }
+
+    //------------------------------------------------------
+
+    public int getCode()
+    {
+        return code;
+    }
+
+    public void setCode(int code)
+    {
+        this.code = code;
+    }
+
+    public T getData()
+    {
+        return data;
+    }
+
+    public void setData(T data)
+    {
+        this.data = data;
+    }
+
+    public String getMsg()
+    {
+        return msg;
+    }
+
+    public void setMsg(String msg)
+    {
+        this.msg = msg;
+    }
+
+    public String getPath()
+    {
+        return path;
+    }
+
+    public void setPath(String path)
+    {
+        this.path = path;
+    }
+
+    public Map<String, Object> getExtra()
+    {
+        return extra;
+    }
+
+    public void setExtra(Map<String, Object> extra)
+    {
+        this.extra = extra;
+    }
+
+    public long getTimestamp()
+    {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp)
+    {
+        this.timestamp = timestamp;
+    }
+}
+```
+
+
+
+
+
+第十五步：编写类SysLogEvent
+
+
+
