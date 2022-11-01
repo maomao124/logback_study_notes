@@ -1354,6 +1354,11 @@ tools-log的开发步骤为：
 
     </dependencies>
 
+    <modules>
+        <module>tools-log</module>
+        <module>use-starter</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
 
@@ -1370,6 +1375,7 @@ tools-log的开发步骤为：
     </build>
 
 </project>
+
 ```
 
 
