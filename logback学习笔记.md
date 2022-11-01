@@ -1261,7 +1261,7 @@ tools-log的开发步骤为：
 
 
 
-第一步：初始化项目
+#### 第一步：初始化项目
 
 
 
@@ -1299,7 +1299,7 @@ tools-log的开发步骤为：
 
 
 
-第二步：修改pom文件
+#### 第二步：修改pom文件
 
 
 
@@ -1545,7 +1545,7 @@ tools-log的开发步骤为：
 
 
 
-第三步：编写工具类AddressUtil
+#### 第三步：编写工具类AddressUtil
 
 
 
@@ -1763,7 +1763,7 @@ public class AddressUtil
 
 
 
-第四步：编写工具类LogUtil
+#### 第四步：编写工具类LogUtil
 
 
 
@@ -1855,7 +1855,7 @@ public class LogUtil
 
 
 
-第五步：编写工具类NumberHelper
+#### 第五步：编写工具类NumberHelper
 
 
 
@@ -1955,7 +1955,7 @@ public class NumberHelper
 
 
 
-第六步：编写工具类StrHelper
+#### 第六步：编写工具类StrHelper
 
 
 
@@ -2019,7 +2019,7 @@ public class StrHelper
 
 
 
-第七步：编写类ApplicationLoggerInitializer
+#### 第七步：编写类ApplicationLoggerInitializer
 
 
 
@@ -2070,7 +2070,7 @@ public class ApplicationLoggerInitializer implements ApplicationContextInitializ
 
 
 
-第八步：编写接口BaseExceptionCode
+#### 第八步：编写接口BaseExceptionCode
 
 
 
@@ -2102,7 +2102,7 @@ public interface BaseExceptionCode
 
 
 
-第九步：编写类ExceptionCode
+#### 第九步：编写类ExceptionCode
 
 
 
@@ -2225,7 +2225,7 @@ public enum ExceptionCode implements BaseExceptionCode
 
 
 
-第十步：编写接口BaseException
+#### 第十步：编写接口BaseException
 
 
 
@@ -2264,7 +2264,7 @@ public interface BaseException
 
 
 
-第十一步：编写类BaseUncheckedException
+#### 第十一步：编写类BaseUncheckedException
 
 
 
@@ -2322,7 +2322,7 @@ public class BaseUncheckedException extends RuntimeException implements BaseExce
 
 
 
-第十二步：编写类BizException
+#### 第十二步：编写类BizException
 
 
 
@@ -2399,7 +2399,7 @@ public class BizException extends BaseUncheckedException
 
 
 
-第十三步：编写实体类OptLogDTO
+#### 第十三步：编写实体类OptLogDTO
 
 
 
@@ -3046,7 +3046,7 @@ public class OptLogDTO
 
 
 
-第十四步：编写实体类R\<T>
+#### 第十四步：编写实体类R\<T>
 
 
 
@@ -3328,7 +3328,7 @@ public class R<T>
 
 
 
-第十五步：编写类SysLogEvent
+#### 第十五步：编写类SysLogEvent
 
 
 
@@ -3364,7 +3364,7 @@ public class SysLogEvent extends ApplicationEvent
 
 
 
-第十六步：编写类SysLogListener
+#### 第十六步：编写类SysLogListener
 
 
 
@@ -3416,7 +3416,7 @@ public class SysLogListener
 
 
 
-第十七步：编写常量工具类BaseContextConstants
+#### 第十七步：编写常量工具类BaseContextConstants
 
 
 
@@ -3465,7 +3465,7 @@ public class BaseContextConstants
 
 
 
-第十八步：编写类BaseContextHandler
+#### 第十八步：编写类BaseContextHandler
 
 
 
@@ -3669,7 +3669,7 @@ public class BaseContextHandler
 
 
 
-第十九步：编写注解SysLog
+#### 第十九步：编写注解SysLog
 
 
 
@@ -3710,7 +3710,7 @@ public @interface SysLog
 
 
 
-第二十步：编写类SysLogAspect
+#### 第二十步：编写类SysLogAspect
 
 
 
@@ -4023,7 +4023,7 @@ public class SysLogAspect
 
 
 
-第二十一步：编写配置类LogAutoConfiguration
+#### 第二十一步：编写配置类LogAutoConfiguration
 
 
 
@@ -4078,4 +4078,540 @@ public class LogAutoConfiguration
 
 
 
-第二十二步：
+#### 第二十二步：拷贝下载的ip2region.db文件到资源目录下
+
+
+
+![image-20221101135738385](img/logback学习笔记/image-20221101135738385.png)
+
+
+
+
+
+#### 第二十三步：编写spring.factories文件
+
+
+
+```
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    mao.tools_log.config.LogAutoConfiguration
+org.springframework.context.ApplicationContextInitializer=\
+    mao.tools_log.init.ApplicationLoggerInitializer
+```
+
+
+
+
+
+
+
+![image-20221101135833712](img/logback学习笔记/image-20221101135833712.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 使用starter
+
+
+
+第一步：导入tools-log的依赖
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>logback_spring_boot_starter_demo</artifactId>
+        <groupId>mao</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>use-starter</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>use-starter</name>
+    <description>use-starter</description>
+
+    <properties>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>mao</groupId>
+            <artifactId>tools-log</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+
+
+
+
+
+
+
+第二步：拷贝logback的配置文件到此项目的资源目录中
+
+
+
+![image-20221101140131794](img/logback学习笔记/image-20221101140131794.png)
+
+
+
+
+
+第三步：编写LogService
+
+
+
+```java
+package mao.use_starter.service;
+
+import mao.tools_log.entity.OptLogDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.use_starter.service
+ * Class(类名): LogService
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:40
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+@Service
+public class LogService
+{
+
+    private static final Logger log = LoggerFactory.getLogger(LogService.class);
+
+
+    /**
+     * 将日志信息保存
+     *
+     * @param optLogDTO OptLogDTO对象
+     */
+    public void saveLog(OptLogDTO optLogDTO)
+    {
+        //此处只是将日志信息进行输出，实际项目中可以将日志信息保存到数据库
+        log.info("保存日志信息：" + optLogDTO);
+    }
+}
+```
+
+
+
+
+
+第四步：修改application.yml文件
+
+
+
+```yaml
+log:
+  enabled: true
+
+logging:
+  #在Spring Boot项目中默认加载类路径下的logback-spring.xml文件
+  config: classpath:logback-spring.xml
+
+spring:
+  profiles:
+    active: dev
+```
+
+
+
+
+
+第五步：编写UserController
+
+
+
+```java
+package mao.use_starter.controller;
+
+import mao.tools_log.annotation.SysLog;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.use_starter.controller
+ * Class(类名): UserController
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:41
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+@RestController
+@RequestMapping("/user")
+public class UserController
+{
+    @SysLog("分页查询用户")//记录操作日志
+    @GetMapping(value = "page/{pageNum}/{pageSize}")
+    public String findByPage(@PathVariable Integer pageNum, @PathVariable Integer pageSize)
+    {
+        try
+        {
+            Thread.sleep(300);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        return "OK";
+    }
+}
+```
+
+
+
+
+
+第六步：编写配置类LogAutoConfig
+
+
+
+```java
+package mao.use_starter.config;
+
+import mao.tools_log.entity.OptLogDTO;
+import mao.tools_log.event.SysLogListener;
+import mao.use_starter.service.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.use_starter.config
+ * Class(类名): LogAutoConfig
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:38
+ * Version(版本): 1.0
+ * Description(描述)： 日志配置类
+ */
+
+
+@Configuration
+public class LogAutoConfig
+{
+
+    private static final Logger log = LoggerFactory.getLogger(LogAutoConfig.class);
+
+    //自动配置日志监听器组件
+    @Bean
+    @ConditionalOnMissingBean
+    public SysLogListener sysLogListener(LogService logService)
+    {
+        return new SysLogListener(logService::saveLog);
+    }
+}
+```
+
+
+
+
+
+
+
+第七步：启动程序
+
+
+
+```sh
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.7.1)
+
+2022-11-01 14:06:39.953  INFO 14052 --- [           main] mao.use_starter.UseStarterApplication    : Starting UseStarterApplication using Java 16.0.2 on mao with PID 14052 (H:\程序\大四上期\logback_spring_boot_starter_demo\use-starter\target\classes started by mao in H:\程序\大四上期\logback_spring_boot_starter_demo)
+2022-11-01 14:06:39.956 DEBUG 14052 --- [           main] mao.use_starter.UseStarterApplication    : Running with Spring Boot v2.7.1, Spring v5.3.21
+2022-11-01 14:06:39.956  INFO 14052 --- [           main] mao.use_starter.UseStarterApplication    : The following 1 profile is active: "dev"
+2022-11-01 14:06:40.720  INFO 14052 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-11-01 14:06:40.727  INFO 14052 --- [           main] o.a.coyote.http11.Http11NioProtocol      : Initializing ProtocolHandler ["http-nio-8080"]
+2022-11-01 14:06:40.727  INFO 14052 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-11-01 14:06:40.727  INFO 14052 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2022-11-01 14:06:40.822  INFO 14052 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-11-01 14:06:40.823  INFO 14052 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 835 ms
+2022-11-01 14:06:41.169  INFO 14052 --- [           main] o.a.coyote.http11.Http11NioProtocol      : Starting ProtocolHandler ["http-nio-8080"]
+2022-11-01 14:06:41.184  INFO 14052 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-11-01 14:06:41.192  INFO 14052 --- [           main] mao.use_starter.UseStarterApplication    : Started UseStarterApplication in 1.599 seconds (JVM running for 2.088)
+```
+
+
+
+
+
+
+
+第八步：访问
+
+
+
+http://localhost:8080/user/page/1/24
+
+http://localhost:8080/user/page/3/14
+
+http://localhost:8080/user/page/2/4
+
+
+
+![image-20221101140829887](img/logback学习笔记/image-20221101140829887.png)
+
+
+
+
+
+```sh
+2022-11-01 14:07:58.821  INFO 14052 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2022-11-01 14:07:58.821  INFO 14052 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2022-11-01 14:07:58.822  INFO 14052 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2022-11-01 14:07:59.186  INFO 14052 --- [         task-1] mao.use_starter.service.LogService       : 保存日志信息：OptLogDTO{requestIp='0:0:0:0:0:0:0:1', type='OPT', userName='', description='分页查询用户', classPath='mao.use_starter.controller.UserController', actionMethod='findByPage', requestUri='/user/page/1/24', httpMethod='GET', params='[1, 24]', result='null', exDesc='null', exDetail='null', startTime=2022-11-01T14:07:58.854014400, finishTime=2022-11-01T14:07:59.181036200, consumingTime=327, ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26', createUser=0}
+2022-11-01 14:08:08.033  INFO 14052 --- [         task-2] mao.use_starter.service.LogService       : 保存日志信息：OptLogDTO{requestIp='0:0:0:0:0:0:0:1', type='OPT', userName='', description='分页查询用户', classPath='mao.use_starter.controller.UserController', actionMethod='findByPage', requestUri='/user/page/3/14', httpMethod='GET', params='[3, 14]', result='null', exDesc='null', exDetail='null', startTime=2022-11-01T14:08:07.719294200, finishTime=2022-11-01T14:08:08.033604, consumingTime=314, ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26', createUser=0}
+2022-11-01 14:08:16.123  INFO 14052 --- [         task-3] mao.use_starter.service.LogService       : 保存日志信息：OptLogDTO{requestIp='0:0:0:0:0:0:0:1', type='OPT', userName='', description='分页查询用户', classPath='mao.use_starter.controller.UserController', actionMethod='findByPage', requestUri='/user/page/2/4', httpMethod='GET', params='[2, 4]', result='null', exDesc='null', exDetail='null', startTime=2022-11-01T14:08:15.816589600, finishTime=2022-11-01T14:08:16.123406500, consumingTime=306, ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26', createUser=0}
+```
+
+
+
+
+
+
+
+第九步：更改UserController
+
+
+
+```java
+package mao.use_starter.controller;
+
+import mao.tools_log.annotation.SysLog;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.use_starter.controller
+ * Class(类名): UserController
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:41
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+@RestController
+@RequestMapping("/user")
+public class UserController
+{
+    @SysLog("分页查询用户")//记录操作日志
+    @GetMapping(value = "page/{pageNum}/{pageSize}")
+    public String findByPage(@PathVariable Integer pageNum, @PathVariable Integer pageSize)
+    {
+        try
+        {
+            Thread.sleep(300);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        return "OK";
+    }
+
+    @SysLog("获取使用用户的信息")
+    @GetMapping()
+    public String getAll()
+    {
+        throw new RuntimeException("不允许使用");
+    }
+}
+```
+
+
+
+
+
+第十步：重启服务并访问
+
+
+
+http://localhost:8080/user
+
+
+
+![image-20221101141457913](img/logback学习笔记/image-20221101141457913.png)
+
+
+
+
+
+
+
+```sh
+2022-11-01 14:14:51.523  INFO 11404 --- [         task-2] mao.use_starter.service.LogService       : 保存日志信息：OptLogDTO{requestIp='0:0:0:0:0:0:0:1', type='EX', userName='', description='获取使用用户的信息', classPath='mao.use_starter.controller.UserController', actionMethod='getAll', requestUri='/user', httpMethod='GET', params='[]', result='null', exDesc='不允许使用', exDetail='java.lang.RuntimeException: 不允许使用
+	at mao.use_starter.controller.UserController.getAll(UserController.java:45)
+	at mao.use_starter.controller.UserController$$FastClassBySpringCGLIB$$828362cf.invoke(<generated>)
+	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.invokeJoinpoint(CglibAopProxy.java:793)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:763)
+	at org.springframework.aop.aspectj.AspectJAfterThrowingAdvice.invoke(AspectJAfterThrowingAdvice.java:64)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:175)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:763)
+	at org.springframework.aop.framework.adapter.AfterReturningAdviceInterceptor.invoke(AfterReturningAdviceInterceptor.java:57)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:175)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:763)
+	at org.springframework.aop.framework.adapter.MethodBeforeAdviceInterceptor.invoke(MethodBeforeAdviceInterceptor.java:58)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:175)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:763)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:763)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:708)
+	at mao.use_starter.controller.UserController$$EnhancerBySpringCGLIB$$c6751aa7.getAll(<generated>)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:78)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:567)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:895)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1067)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:655)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:764)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:227)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:197)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:97)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:541)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:135)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:78)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:360)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:890)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1787)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:831)
+', startTime=2022-11-01T14:14:51.522486900, finishTime=2022-11-01T14:14:51.523499, consumingTime=1, ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26', createUser=0}
+2022-11-01 14:14:51.523 ERROR 11404 --- [nio-8080-exec-5] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.RuntimeException: 不允许使用] with root cause
+
+java.lang.RuntimeException: 不允许使用
+	at mao.use_starter.controller.UserController.getAll(UserController.java:45)
+	at mao.use_starter.controller.UserController$$FastClassBySpringCGLIB$$828362cf.invoke(<generated>)
+	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.invokeJoinpoint(CglibAopProxy.java:793)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:763)
+...
+...
+...
+```
+
+
+
+
+
+
+
