@@ -1231,9 +1231,846 @@ http://localhost:8080/user/getUser
 
 ## 自定义spring boot starter
 
+tools-log的开发步骤为：
+
+1、定义日志操作事件类SysLogEvent
+
+2、定义@SysLog注解，用于在Controller的方法上标注当前方法需要进行操作日志的保存处理
+
+3、定义切面类SysLogAspect
+
+4、在切面类SysLogAspect中定义切点，拦截Controller中添加@SysLog注解的方法
+
+5、在切面类SysLogAspect中定义前置通知，在前置通知方法recordLog中收集操作日志相关信息封装为OptLogDTO对象并保存到ThreadLocal中
+
+6、在切面类SysLogAspect中定义后置通知，在后置通知方法doAfterReturning中通过ThreadLocal 获取OptLogDTO并继续设置其他的操作信息到OptLogDTO
+
+7、在切面类SysLogAspect的后置通知方法doAfterReturning中发布事件SysLogEvent
+
+8、定义监听器SysLogListener，监听日志发布事件SysLogEvent
+
+9、定义配置类LogAutoConfiguration，用于自动配置切面SysLogAspect对象
+
+10、定义starter所需的META-INF/spring.factories文件，并配置自动配置类LogAutoConfiguration
+
+
+
+
+
 ### 开发starter
 
 
+
+第一步：初始化项目
+
+
+
+创建父工程logback_spring_boot_starter_demo
+
+
+
+![image-20221031211830329](img/logback学习笔记/image-20221031211830329.png)
+
+
+
+
+
+
+
+创建子工程tools-log
+
+
+
+![image-20221031212026706](img/logback学习笔记/image-20221031212026706.png)
+
+
+
+
+
+创建子工程use-starter
+
+
+
+![image-20221031212411768](img/logback学习笔记/image-20221031212411768.png)
+
+
+
+
+
+
+
+第二步：修改pom文件
+
+
+
+
+
+父工程logback_spring_boot_starter_demo的pom文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>mao</groupId>
+    <artifactId>logback_spring_boot_starter_demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>logback_spring_boot_starter_demo</name>
+    <description>logback_spring_boot_starter_demo</description>
+    <packaging>pom</packaging>
+
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+
+    <dependencies>
+
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+
+
+
+
+
+子工程tools-log的pom文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>logback_spring_boot_starter_demo</artifactId>
+        <groupId>mao</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>tools-log</name>
+    <description>tools-log</description>
+    <properties>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--logback-->
+<!--        <dependency>-->
+<!--            <groupId>ch.qos.logback</groupId>-->
+<!--            <artifactId>logback-classic</artifactId>-->
+<!--            <version>1.2.3</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>ch.qos.logback</groupId>-->
+<!--            <artifactId>logback-core</artifactId>-->
+<!--            <version>1.2.3</version>-->
+<!--        </dependency>-->
+
+
+        <dependency>
+            <groupId>org.lionsoul</groupId>
+            <artifactId>ip2region</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.bitwalker</groupId>
+            <artifactId>UserAgentUtils</artifactId>
+            <version>1.21</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!--阿里巴巴的FastJson json解析-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.79</version>
+        </dependency>
+
+
+        <!--spring boot starter开发依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+
+
+
+不需要在导入logback了，因为spring-boot-starter-web已经包含了logback
+
+
+
+![image-20221101134029698](img/logback学习笔记/image-20221101134029698.png)
+
+
+
+
+
+
+
+
+
+工程use-starter的pom文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>logback_spring_boot_starter_demo</artifactId>
+        <groupId>mao</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>use-starter</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>use-starter</name>
+    <description>use-starter</description>
+
+    <properties>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+
+
+
+
+
+
+
+第三步：编写工具类AddressUtil
+
+
+
+```java
+package mao.tools_log.utils;
+
+import org.lionsoul.ip2region.DataBlock;
+import org.lionsoul.ip2region.DbConfig;
+import org.lionsoul.ip2region.DbSearcher;
+import org.lionsoul.ip2region.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.util.StrUtil;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.utils
+ * Class(类名): AddressUtil
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:17
+ * Version(版本): 1.0
+ * Description(描述)： 解析ip地址的工具类
+ */
+
+public class AddressUtil
+{
+    private static final String JAVA_TEMP_DIR = "java.io.tmpdir";
+
+    private static final Logger log = LoggerFactory.getLogger(AddressUtil.class);
+
+    static DbConfig config = null;
+    static DbSearcher searcher = null;
+
+
+    /**
+     * 根据ip查询地址
+     *
+     * @param ip ip地址
+     * @return {@link String}
+     */
+    /*public static String getCityInfo(String ip)
+    {
+        DbSearcher searcher = null;
+        try
+        {
+            String dbPath = AddressUtil.class.getResource("/ip2region/ip2region.db").getPath();
+            File file = new File(dbPath);
+            if (!file.exists())
+            {
+                String tmpDir = System.getProperties().getProperty(JAVA_TEMP_DIR);
+                dbPath = tmpDir + "ip2region.db";
+                file = new File(dbPath);
+                String classPath = "classpath:ip2region/ip2region.db";
+                InputStream resourceAsStream = ResourceUtil.getStreamSafe(classPath);
+                if (resourceAsStream != null)
+                {
+                    FileUtils.copyInputStreamToFile(resourceAsStream, file);
+                }
+            }
+            DbConfig config = new DbConfig();
+            searcher = new DbSearcher(config, file.getPath());
+            Method method = searcher.getClass().getMethod("btreeSearch", String.class);
+            if (!Util.isIpAddress(ip))
+            {
+                log.error("Error: Invalid ip address");
+            }
+            DataBlock dataBlock = (DataBlock) method.invoke(searcher, ip);
+            return dataBlock.getRegion();
+        }
+        catch (Exception e)
+        {
+            log.error("获取地址信息异常，", e);
+            return StrUtil.EMPTY;
+        }
+        finally
+        {
+            if (searcher != null)
+            {
+                try
+                {
+                    searcher.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }*/
+
+    /*
+     * 初始化IP库
+     */
+    static
+    {
+        try
+        {
+            // 因为jar无法读取文件,复制创建临时文件
+//            String tmpDir = System.getProperty("user.dir") + File.separator + "temp";
+//            String dbPath = tmpDir + File.separator + "ip2region.db";
+//            log.info("init ip region db path [{}]", dbPath);
+//            File file = new File(dbPath);
+//            FileUtils.copyInputStreamToFile(AddressUtil.class.getClassLoader().getResourceAsStream("ip2region/ip2region.db"), file);
+            String dbPath = AddressUtil.class.getResource("/ip2region/ip2region.db").getPath();
+            File file = new File(dbPath);
+            if (!file.exists())
+            {
+                String tmpDir = System.getProperties().getProperty(JAVA_TEMP_DIR);
+                dbPath = tmpDir + "ip2region.db";
+                file = new File(dbPath);
+                String classPath = "classpath:ip2region/ip2region.db";
+                InputStream resourceAsStream = ResourceUtil.getStreamSafe(classPath);
+                if (resourceAsStream != null)
+                {
+                    FileUtils.copyInputStreamToFile(resourceAsStream, file);
+                }
+            }
+            config = new DbConfig();
+            searcher = new DbSearcher(config, dbPath);
+            log.info("bean [{}]", config);
+            log.info("bean [{}]", searcher);
+        }
+        catch (Exception e)
+        {
+            log.error("init ip region error:", e);
+        }
+    }
+
+
+    /**
+     * 解析ip
+     *
+     * @param ip ip地址
+     * @return {@link String}
+     */
+    public static String getRegion(String ip)
+    {
+        try
+        {
+            //db
+            if (searcher == null || StrUtil.isEmpty(ip))
+            {
+                log.error("DbSearcher is null");
+                return StrUtil.EMPTY;
+            }
+            long startTime = System.currentTimeMillis();
+            //查询算法
+            int algorithm = DbSearcher.MEMORY_ALGORITYM;
+            Method method = null;
+            switch (algorithm)
+            {
+                case DbSearcher.BTREE_ALGORITHM:
+                    method = searcher.getClass().getMethod("btreeSearch", String.class);
+                    break;
+                case DbSearcher.BINARY_ALGORITHM:
+                    method = searcher.getClass().getMethod("binarySearch", String.class);
+                    break;
+                case DbSearcher.MEMORY_ALGORITYM:
+                    method = searcher.getClass().getMethod("memorySearch", String.class);
+                    break;
+            }
+
+            DataBlock dataBlock = null;
+            if (!Util.isIpAddress(ip))
+            {
+                log.warn("warning: Invalid ip address");
+            }
+            dataBlock = (DataBlock) method.invoke(searcher, ip);
+            String result = dataBlock.getRegion();
+            long endTime = System.currentTimeMillis();
+            log.debug("region use time[{}] result[{}]", endTime - startTime, result);
+            return result;
+
+        }
+        catch (Exception e)
+        {
+            log.error("error:", e);
+        }
+        return StrUtil.EMPTY;
+    }
+
+    public static void main(String[] args)
+    {
+        System.out.println(AddressUtil.getRegion("113.222.142.84"));
+        System.out.println(AddressUtil.getRegion("113.221.141.84"));
+        System.out.println(AddressUtil.getRegion("113.192.142.84"));
+        System.out.println(AddressUtil.getRegion("113.224.142.84"));
+        System.out.println(AddressUtil.getRegion("114.222.142.84"));
+        System.out.println(AddressUtil.getRegion("115.222.142.84"));
+        System.out.println(AddressUtil.getRegion("117.222.142.84"));
+        System.out.println(AddressUtil.getRegion("119.222.142.84"));
+        System.out.println(AddressUtil.getRegion("13.222.142.84"));
+        System.out.println(AddressUtil.getRegion("14.222.142.84"));
+        System.out.println(AddressUtil.getRegion("15.222.142.84"));
+        System.out.println(AddressUtil.getRegion("16.222.142.84"));
+    }
+}
+```
+
+
+
+
+
+
+
+第四步：编写工具类LogUtil
+
+
+
+```java
+package mao.tools_log.utils;
+
+import mao.tools_log.annotation.SysLog;
+import org.aspectj.lang.JoinPoint;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.utils
+ * Class(类名): LogUtil
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 22:16
+ * Version(版本): 1.0
+ * Description(描述)： 无
+ */
+
+public class LogUtil
+{
+    /***
+     * 获取操作信息
+     * @param point JoinPoint对象
+     * @return String
+     */
+    public static String getControllerMethodDescription(JoinPoint point)
+    {
+        try
+        {
+            // 获取连接点目标类名
+            String targetName = point.getTarget().getClass().getName();
+            // 获取连接点签名的方法名
+            String methodName = point.getSignature().getName();
+            //获取连接点参数
+            Object[] args = point.getArgs();
+            //根据连接点类的名字获取指定类
+            Class targetClass = Class.forName(targetName);
+            //获取类里面的方法
+            Method[] methods = targetClass.getMethods();
+            String description = "";
+            for (Method method : methods)
+            {
+                if (method.getName().equals(methodName))
+                {
+                    Class[] clazzs = method.getParameterTypes();
+                    if (clazzs.length == args.length)
+                    {
+                        description = method.getAnnotation(SysLog.class).value();
+                        break;
+                    }
+                }
+            }
+            return description;
+        }
+        catch (Exception e)
+        {
+            return "";
+        }
+    }
+
+
+    /**
+     * 获取堆栈信息
+     *
+     * @param throwable throwable
+     * @return {@link String}
+     */
+    public static String getStackTrace(Throwable throwable)
+    {
+        StringWriter sw = new StringWriter();
+        try (PrintWriter pw = new PrintWriter(sw))
+        {
+            throwable.printStackTrace(pw);
+            return sw.toString();
+        }
+    }
+}
+```
+
+
+
+
+
+第五步：编写工具类NumberHelper
+
+
+
+```java
+package mao.tools_log.utils;
+
+import java.util.function.Function;
+
+
+/**
+ * 数字类型 帮助类
+ */
+public class NumberHelper
+{
+
+    private static <T, R> R valueOfDef(T t, Function<T, R> function, R def)
+    {
+        try
+        {
+            return function.apply(t);
+        }
+        catch (Exception e)
+        {
+            return def;
+        }
+    }
+
+    public static Long longValueOfNil(String value)
+    {
+        return valueOfDef(value, Long::valueOf, null);
+    }
+
+    public static Long longValueOf0(String value)
+    {
+        return valueOfDef(value, Long::valueOf, 0L);
+    }
+
+    public static Long longValueOfNil(Object value)
+    {
+        return valueOfDef(value, (val) -> Long.valueOf(val.toString()), null);
+    }
+
+    public static Long longValueOf0(Object value)
+    {
+        return valueOfDef(value, (val) -> Long.valueOf(val.toString()), 0L);
+    }
+
+    public static Boolean boolValueOf0(Object value)
+    {
+        return valueOfDef(value, (val) -> Boolean.valueOf(val.toString()), false);
+    }
+
+    public static Integer intValueOfNil(String value)
+    {
+        return valueOfDef(value, Integer::valueOf, null);
+    }
+
+    public static Integer intValueOf0(String value)
+    {
+        return intValueOf(value, 0);
+    }
+
+    public static Integer intValueOf(String value, Integer def)
+    {
+        return valueOfDef(value, Integer::valueOf, def);
+    }
+
+    public static Integer intValueOfNil(Object value)
+    {
+        return valueOfDef(value, (val) -> Integer.valueOf(val.toString()), null);
+    }
+
+    public static Integer intValueOf0(Object value)
+    {
+        return valueOfDef(value, (val) -> Integer.valueOf(val.toString()), 0);
+    }
+
+    public static Integer getOrDef(Integer val, Integer def)
+    {
+        return val == null ? def : val;
+    }
+
+    public static Long getOrDef(Long val, Long def)
+    {
+        return val == null ? def : val;
+    }
+
+    public static Boolean getOrDef(Boolean val, Boolean def)
+    {
+        return val == null ? def : val;
+    }
+
+}
+```
+
+
+
+
+
+第六步：编写工具类StrHelper
+
+
+
+```java
+package mao.tools_log.utils;
+
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import cn.hutool.core.util.StrUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * 字符串帮助类
+ */
+
+public class StrHelper
+{
+
+    private static final Logger log = LoggerFactory.getLogger(StrHelper.class);
+
+    public static String getObjectValue(Object obj)
+    {
+        return obj == null ? "" : obj.toString();
+    }
+
+    public static String encode(String value)
+    {
+        try
+        {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        }
+        catch (Exception e)
+        {
+            return "";
+        }
+    }
+
+    public static String decode(String value)
+    {
+        try
+        {
+            return URLDecoder.decode(value, StandardCharsets.UTF_8);
+        }
+        catch (Exception e)
+        {
+            return "";
+        }
+    }
+
+    public static String getOrDef(String val, String def)
+    {
+        return StrUtil.isEmpty(val) ? def : val;
+    }
+}
+```
+
+
+
+
+
+第七步：编写类ApplicationLoggerInitializer
+
+
+
+```java
+package mao.tools_log.init;
+
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
+
+/**
+ * Project name(项目名称)：logback_spring_boot_starter_demo
+ * Package(包名): mao.tools_log.init
+ * Class(类名): ApplicationLoggerInitializer
+ * Author(作者）: mao
+ * Author QQ：1296193245
+ * GitHub：https://github.com/maomao124/
+ * Date(创建日期)： 2022/10/31
+ * Time(创建时间)： 21:43
+ * Version(版本): 1.0
+ * Description(描述)：
+ * <p>
+ * 通过环境变量的形式注入 logging.file
+ * 自动维护 Spring Boot Admin Logger Viewer
+ */
+
+public class ApplicationLoggerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>
+{
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext)
+    {
+        ConfigurableEnvironment environment = applicationContext.getEnvironment();
+        String logBase = environment.getProperty("logging.path", "/data/projects/logs");
+        String appName = environment.getProperty("spring.application.name");
+        // spring boot admin 直接加载日志
+        System.setProperty("logging.file", String.format("%s/%s/root.log", logBase, appName));
+
+        // nacos的日志文件路径
+        System.setProperty("nacos.logging.path", String.format("%s/%s", logBase, appName));
+        //这里设置了无效，跟启动时，传递 -Dcom.alibaba.nacos.naming.log.level=warn 一样，可能是nacos的bug
+//        System.setProperty("com.alibaba.nacos.naming.log.level", "warn");
+//        System.setProperty("com.alibaba.nacos.config.log.level", "info");
+    }
+}
+```
+
+
+
+
+
+第八步：编写接口BaseExceptionCode
 
 
 
