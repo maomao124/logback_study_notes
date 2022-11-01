@@ -1,5 +1,25 @@
 
 
+[TOC]
+
+--
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4135,7 +4155,7 @@ org.springframework.context.ApplicationContextInitializer=\
 
 
 
-第一步：导入tools-log的依赖
+#### 第一步：导入tools-log的依赖
 
 
 
@@ -4198,7 +4218,7 @@ org.springframework.context.ApplicationContextInitializer=\
 
 
 
-第二步：拷贝logback的配置文件到此项目的资源目录中
+#### 第二步：拷贝logback的配置文件到此项目的资源目录中
 
 
 
@@ -4208,7 +4228,7 @@ org.springframework.context.ApplicationContextInitializer=\
 
 
 
-第三步：编写LogService
+#### 第三步：编写LogService
 
 
 
@@ -4257,7 +4277,7 @@ public class LogService
 
 
 
-第四步：修改application.yml文件
+#### 第四步：修改application.yml文件
 
 
 
@@ -4278,7 +4298,7 @@ spring:
 
 
 
-第五步：编写UserController
+#### 第五步：编写UserController
 
 
 
@@ -4329,7 +4349,7 @@ public class UserController
 
 
 
-第六步：编写配置类LogAutoConfig
+#### 第六步：编写配置类LogAutoConfig
 
 
 
@@ -4381,7 +4401,7 @@ public class LogAutoConfig
 
 
 
-第七步：启动程序
+#### 第七步：启动程序
 
 
 
@@ -4415,7 +4435,7 @@ public class LogAutoConfig
 
 
 
-第八步：访问
+#### 第八步：访问
 
 
 
@@ -4448,7 +4468,7 @@ http://localhost:8080/user/page/2/4
 
 
 
-第九步：更改UserController
+#### 第九步：更改UserController
 
 
 
@@ -4506,7 +4526,7 @@ public class UserController
 
 
 
-第十步：重启服务并访问
+#### 第十步：重启服务并访问
 
 
 
@@ -4615,3 +4635,36 @@ java.lang.RuntimeException: 不允许使用
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+end
+
+---
+
+by mao
+
+2022  11  01
+
+---
